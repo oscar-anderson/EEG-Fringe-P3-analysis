@@ -17,27 +17,17 @@ dataFile = 'participants\006meg.bdf';
 % Feed data file to configuration struct.
 cfg.dataset = dataFile;
 
-% Specify that data is continuous.
-cfg.continuous = 'yes';
-
-%% Pre-processing.
-
-%       THIS DOESN'T WORK, UNSURE WHY:
-
-% Band pass filter (as in Alberto's report).
-% band = [0.1 30];
-% cfg.bpfilter = 'yes';
-% cfg.bpfreq = band;
+%% Filtering.
 
 % Low-pass filter.
 cfg.preproc.lpfilter = 'yes';
 cfg.preproc.lpfreq = 30;
 
-%       ISSUES WITH THIS, SPECIFICALLY:
-
 % High-pass filter.
-% cfg.preproc.hpfilter = 'yes';
-% cfg.preproc.hpfreq = 0.1;
+cfg.preproc.hpfilter = 'yes';
+cfg.preproc.hpfreq = 0.5;
+
+% This is because a high-pass filter of 0.1Hz would equate to a very broad wavelet!
 
 %% Re-referencing.
 
@@ -77,9 +67,6 @@ dsData = ft_resampledata(cfg, data);
 
 %% Segment data.
 
-% Presumably, the events are marked within the data using the markers
-% (given in markers.csv)?
-
 % USE IF NEED TO CHECK EVENTTYPE/EVENTVALUE:
 % cfg.dataset = dataFile;
 % cfg.trialdef.eventtype = '?';
@@ -91,9 +78,13 @@ cfg.dataset = dataFile;
 % Specify type of events in data.
 cfg.trialdef.eventtype = 'STATUS';
 
+%       CONFUSED BY THIS (BELOW). WHY DOES THE DATABROWSER TRIAL START/END
+%       GET MULTIPLIED BY 4? I.E. ENTERING THESE GIVES A START/END OF -0.2
+%       TO 1S.
+
 % Define time windows of interest around stimulus presentations (seconds).
-cfg.trialdef.pre = 0.2;
-cfg.trialdef.post = 1;
+cfg.trialdef.pre = 0.05;
+cfg.trialdef.post = 0.25;
 % (Taken from Alberto's report).
 
 % Specify custom function for defining trials/epochs.
@@ -111,11 +102,21 @@ cfg = ft_definetrial(cfg);
 % This outputs the cfg struct with the field 'trl', which contains a matrix
 % of the begin sample, end sample, the offset and the condition.
 
-%        HOW IS THIS CFG FIELD USED ON THE DATA?
-%        THIS DOESN'T WORK ANYMORE:
-% cfg.channel = 'all';
-% cfg.continuous = 'yes';
-% dsDataSeg = ft_preprocessing(cfg);
+% Save trial info for reference.
+trl = cfg.trl;
+
+% Apply trial definitions to data.
+dsDataSeg = ft_redefinetrial(cfg, dsData);
+
+%% Visualise downsampled, filtered, re-referenced, segmented data.
+
+cfg.channel = 'all';
+cfg.viewmode = 'vertical';
+cfg.ylim = [-10 10];
+cfg.fontsize = 8;
+cfg.position = [0 0 800 800];
+cfg.verticalpadding = 0.1;
+ft_databrowser(cfg, dsDataSeg)
 
 %% Independent component analysis.
 
