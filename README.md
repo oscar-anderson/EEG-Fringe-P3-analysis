@@ -19,7 +19,7 @@ The code/ folder contains the following:
 
 In the Preprocessing/ folder, the following scripts are available:
 
-- preprocessing.m: a script that performs the preprocessing of the raw EEG data (WIP).
+- preprocessing_full.m: a script that performs the preprocessing of the raw EEG data (WIP).
 
 The Analysis/ folder is not yet populated, as the scripts are currently being written.
 
