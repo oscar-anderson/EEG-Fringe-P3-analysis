@@ -11,7 +11,7 @@ This project is an ongoing work-in-progress. The files and folders in this repos
 - Proposal/: a folder containing the research proposal report for the project (in .docx and .md format). This report outlines the background, aims, methodology and planned analysis of the study.
 - Code/: a folder containing the required code for this project.
 
-## Code
+## Code/
 The code/ folder contains the following:
 
 - Preprocessing/: a folder containing all scripts used in the data preproccessing of this project.
@@ -19,7 +19,7 @@ The code/ folder contains the following:
 
 In the Preprocessing/ folder, the following scripts are available:
 
-- preprocessing_full.m: a script that performs the preprocessing of the raw EEG data (WIP).
+- preprocessing.m: a script that performs all of the preprocessing, segmentation and artifact rejection on the raw EEG data (work in progress).
 
 The Analysis/ folder is not yet populated, as the scripts are currently being written.
 
