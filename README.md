@@ -32,7 +32,7 @@ To run the code in this repository, you will need the following:
 ## Acknowledgements
 This project is being conducted under the encouraging and insightful supervision of Professor Howard Bowman, at the University of Birmingham.
 
-This project uses data collected by Dr Albert Aviles, under the supervision of Professor Howard Bowman.
+This project uses data collected by Dr Alberto Aviles, under the supervision of Professor Howard Bowman.
 
 Invaluable guidance on this project has been provided by PhD student Cihan Dogan, from the University of Kent.
 
