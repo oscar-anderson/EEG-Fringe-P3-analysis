@@ -23,12 +23,6 @@ In the Preprocessing/ folder, the following scripts are available:
 
 The Analysis/ folder is not yet populated, as the scripts are currently being written.
 
-## Requirements
-To run the code in this repository, you will need the following:
-- The relevant .bdf data files, available upon request.
-- MATLAB R2022b or later.
-- FieldTrip MATLAB toolbox for EEG/MEG-analysis (see http://fieldtriptoolbox.org).
-
 ## Acknowledgements
 This project is being conducted under the encouraging and insightful supervision of Professor Howard Bowman, at the University of Birmingham.
 
