@@ -10,6 +10,7 @@ This project is an ongoing work-in-progress. The files and folders in this repos
 - README.md: (this file)
 - Proposal/: a folder containing the research proposal report for the project (in .docx and .md format). This report outlines the background, aims, methodology and planned analysis of the study.
 - Code/: a folder containing the required code for this project.
+- Poster/: a folder containing a PDF poster that summarises the research project, used for my MSc dissertation project presentation.
 
 ## Code/
 The code/ folder contains the following:
