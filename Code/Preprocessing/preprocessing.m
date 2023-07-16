@@ -1,5 +1,4 @@
-%% Load data.
-
+%% Load data as segmented trials.
 % Clear windows.
 clear
 close all
@@ -16,334 +15,200 @@ dataFile = 'participants\006meg.bdf';
 % Assign raw data file to configuration.
 cfg.dataset = dataFile;
 
-% Generate data struct from raw data.
-data = ft_preprocessing(cfg);
+%% Band-pass filter.
+cfg.bpfilter = 'yes';
+cfg.bpfreq = [0.3 30]; % Use range specified by Alberto Aviles.
+cfg.bpfilttype = 'fir'; % Butterworth does not work with this lower band.
 
-%% Visualise raw data.
+%% Notch (band-stop) filter.
+cfg.bsfreq = [7 8]; % Remove SSVEP of 7.52Hz.
 
-figure(1)
-cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
-cfg.demean = 'yes';
-cfg.ylim = [-10 10];
-cfg.fontsize = 8;
-ft_databrowser(cfg, data)
-
-%% Re-referencing.
-
-% Clear configuration.
-cfg = [];
-
-% Reassign raw data file to configuration.
-cfg.dataset = dataFile;
-
-% Apply re-referencing.
+%% Re-reference.
 cfg.reref = 'yes';
+cfg.refmethod = 'avg'; % Use average.
+cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'}; % Exclude empty channels.
+cfg.refchannel = {'T7', 'T8'}; % Use average of mastoids.
 
-% Use average of reference channels as reference.
-cfg.refmethod = 'avg';
+%% Segment.
+cfg.trialdef.eventtype = 'STATUS'; % Events are marked as type 'STATUS'.
+cfg.trialdef.eventvalue = [121:130 151:160]; % Select events of interest.
+cfg.trialdef.prestim = 0.5; % Specify time before event to include.
+cfg.trialdef.poststim = 1.5; % Specify time after event to include.
 
-% Specify channels to be re-referenced to reference channels average.
-% cfg.channel = 'all'; % This includes all non-scalp electrodes.
-
-% Exclude reference non-scalp channels that were not used during data acquisition.
-cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
-
-% Set mastoids as reference channels.
-cfg.refchannel = {'T7', 'T8'};
-
-% Generate data struct for re-referenced data. 
-data_rereferenced = ft_preprocessing(cfg, data);
-
-%% Visualise re-referenced data.
-
-figure(2)
-cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
-cfg.demean = 'yes';
-cfg.ylim = [-10 10];
-cfg.fontsize = 8;
-cfg.position = [0 0 800 800];
-ft_databrowser(cfg, data_rereferenced)
-
-%% Low pass filtering.
-
-% Clear configuration.
-cfg = [];
-
-% Apply low-pass filter.
-cfg.preproc.lpfilter = 'yes';
-cfg.preproc.lpfreq = 30; % 30Hz frequency cut-off.
-cfg.preproc.lpfilttype = 'but'; % Butterworth filter.
-
-data_r_lpfiltered = ft_preprocessing(cfg, data_rereferenced);
-
-%% Visualise low-pass filtered, re-referenced data.
-
-figure(3)
-cfg.demean = 'yes';
-cfg.ylim = [-10 10];
-ft_databrowser(cfg, data_r_lpfiltered)
-
-%% High pass filtering.
-
-cfg = [];
-
-% Apply high-pass filter.
-cfg.preproc.hpfilter = 'yes';
-cfg.preproc.hpfreq = 0.3; % 0.3Hz frequency cut-off.
-cfg.preproc.hpfilttype = 'fir'; % FIR filter.
-
-% Generate data struct for fully filtered re-referenced data.
-data_r_filtered = ft_preprocessing(cfg, data_r_lpfiltered);
-
-%% Visualise filtered, re-referenced data.
-figure(4)
-cfg.demean = 'yes';
-cfg.ylim = [-10 10];
-ft_databrowser(cfg, data_r_filtered)
-
-%% Epoching.
-
-% Clear configuration.
-cfg = [];
-
-% Re-specify raw data file.
-cfg.dataset = dataFile;
-
-% Identify events of interest from raw data file.
-cfg.trialdef.eventtype = 'STATUS';
-cfg.trialdef.eventvalue = [121:130 151:160]; % Select control + critical stimuli presentation events.
-
-% Define window of interest as 0.2 secs before - 1 sec after stimulus onset.
-cfg.trialdef.prestim = 0.5;
-cfg.trialdef.poststim = 1.5;
-
-% Create trial definitions with this configuration.
 cfg = ft_definetrial(cfg);
 
-% Store trial definition info for future reference.
-trl = cfg.trl;
+trials = cfg.trl;
 
-% Generate data struct for segmented, filtered and re-referenced data.
-data_r_f_segmented = ft_redefinetrial(cfg, data_r_filtered);
+%% Baseline correct.
+cfg.preproc.demean = 'yes'; % Subtract window mean from each point.
+cfg.baselinewindow = [-0.2 0]; % Use window recommended by Steven Luck.
 
-% Save filtered/re-referenced/segmented data as new file to downsample.
-% path = 'participants\006meg_segmented.bdf';
-% save(path, 'data_r_f_segmented)')
+%% De-trend.
+cfg.detrend = 'yes'; % Remove baseline drift.
 
-%% Visualise segmented data.
+%% Apply pre-processing.
+dataSFR = ft_preprocessing(cfg);
 
-% Initialise figure.
-figure(5)
+%% Apply objective artifact exclusion threshold.
+cfg = [];
 
-% Orient channel amplitudes around 0.
-cfg.preproc.demean = 'yes';
+cfg.dataset = dataFile;
+cfg.trl = trials;
+cfg.continuous = 'no';
 
-% Specify data browser visualisation settings.
-cfg.channel = 'all';
-cfg.viewmode = 'vertical';
-cfg.ylim = [-10 10];
-cfg.fontsize = 8;
-cfg.position = [0 0 800 800];
-cfg.verticalpadding = 0.1;
+cfg.artfctdef.threshold.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
+cfg.artfctdef.threshold.bpfilter = 'no';
+cfg.artfctdef.threshold.min = -100;
+cfg.artfctdef.threshold.max = 100;
 
-% Load data browser.
-ft_databrowser(cfg, data_r_f_segmented)
+[~, artifact] = ft_artifact_threshold(cfg, dataSFR);
 
-%% Independent component analysis.
+%% Visualise pre-processed data.
+figure(1)
 
 cfg = [];
-cfg.method = 'fastica';
-cfg.numcomponent = 39;
 
-comp = ft_componentanalysis(cfg, data_r_f_segmented);
+cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
+cfg.ylim = [-10 10];
+cfg.fontsize = 8;
+
+ft_databrowser(cfg, dataSFR)
+
+%% Independent component analysis.
+cfg = [];
+cfg.method = 'fastica';
+
+comp = ft_componentanalysis(cfg, dataSFR);
 
 %% Inspect components.
-
 cfg = [];
 cfg.layout = 'biosemi32.lay';
 cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
 cfg.viewmode = 'component';
-cfg.component = 1:39; % A max of 39 components appear when more specified.
+cfg.component = 1:39; % A max of 39 components appear when more is specified.
 cfg.fontsize = 8;
 
-figure(6)
+figure(3)
 ft_databrowser(cfg, comp)
 
-figure(7)
+figure(4)
 ft_topoplotIC(cfg, comp)
 
 %% Reject components.
+cfg = [];
 
-% Specify components to remove.
-cfg.component = [4 8 39]; % [Eyes, unknown, electrical noise].
+cfg.component = 2;
 
-% Remove components.
-ppData_noComp = ft_rejectcomponent(cfg, comp);
+dataSFRC = ft_rejectcomponent(cfg, comp);
+
+%% Visualise ICA'd data.
+cfg = [];
+
+cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
+cfg.ylim = [-10 10];
+cfg.fontsize = 8;
+
+ft_databrowser(cfg, dataSFRC)
 
 %% Remove artifact-distorted trials and channels.
 
-% Clear configuration.
 cfg = [];
 
-cfg.preproc.demean = 'yes';
-
-% Specify trials to inspect (1xN vector, or 'all').
-cfg.trials = 'all';
-
-% Specify channels to inspect.
+cfg.method = 'channel';
 cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
 
-% Specify method for using removal tool.
-% cfg.method = 'summary'; % Show a single number for each channel and trial.
-cfg.method = 'channel'; % Show data per channel, all trials at once.
-% cfg.method = 'trial'; % Show data per trial, all channels at once.
-
-% Use ft_rejectvisual to remove artifact-distorted whole trials/channels.
-ppData_noArt = ft_rejectvisual(cfg, ppData_noComp);
-
-% https://www.fieldtriptoolbox.org/tutorial/visual_artifact_rejection/
-
+dataSFRCA = ft_rejectvisual(cfg, dataSFRC);
 
 %% Generate ERPs.
 
-% For now, generate ERPs across all morphs.
+critMorphPairs = {151:152 153:154 155:156 157:158 159:160};
+ctrlMorphPairs = {121:122 123:124 125:126 127:128 129:130};
 
-% Critical morph condition.
-cfg = [];
-cfg.trials = data_r_f_segmented.trialinfo >= 151 & data_r_f_segmented.trialinfo <= 160;
-allCritMorphs = ft_selectdata(cfg, data_r_f_segmented);
+critERPs = cell(1, length(critMorphPairs));
+ctrlERPs = cell(1, length(ctrlMorphPairs));
 
-% Control morph condition.
-cfg = [];
-cfg.trials = data_r_f_segmented.trialinfo >= 121 & data_r_f_segmented.trialinfo <= 130;
-allCtrlMorphs = ft_selectdata(cfg, data_r_f_segmented);
+for i = 1:length(critMorphPairs)
+    critIdxs = find(ismember(dataSFRCA.trialinfo, critMorphPairs{i}));
+    ctrlIdxs = find(ismember(dataSFRCA.trialinfo, ctrlMorphPairs{i}));
 
-% % Save across-condition data structs as files.
-% save allCritMorphs allCritMorphs
-% save allCtrlMorphs allCtrlMorphs
+    cfg = [];
+    cfg.trials = critIdxs;
+    critMorphs = ft_selectdata(cfg, dataSFRCA);
 
-% % Load across-condition data structs.
-% load allCritMorphs
-% load allCtrlMorphs
+    cfg = [];
+    cfg.trials = ctrlIdxs;
+    ctrlMorphs = ft_selectdata(cfg, dataSFRCA);
 
-% Use ft_timelockanalysis to average over all trials in data struct.
-cfg = [];
-avgCritMorphs = ft_timelockanalysis(cfg, allCritMorphs);
-avgCtrlMorphs = ft_timelockanalysis(cfg, allCtrlMorphs);
+    cfg = [];
+    critERPs{i} = ft_timelockanalysis(cfg, critMorphs);
+    ctrlERPs{i} = ft_timelockanalysis(cfg, ctrlMorphs);
 
-%% Visualise ERPs.
+end
 
-% Plot critical condition ERP topographic map.
-figure
+% Visualise ERPs as time series.
 cfg = [];
 cfg.colorbar = 'yes';
 cfg.layout = 'biosemi32.lay';
-ft_topoplotER(cfg, avgCritMorphs)
-
-% Plot critical condition ERP time series.
-figure
-cfg = [];
-cfg.preproc.demean = 'yes';
-cfg.xlim = [-0.5 1.5];
 cfg.channel = 'Pz';
-ft_singleplotER(cfg, avgCritMorphs);
+cfg.title = 'ERP for combined morphs 1-2';
+cfg.linewidth = 1;
+cfg.ylim = [-13 13];
+ft_singleplotER(cfg, critERPs{1}, critERPs{2})
 
-% Plot critical condition ERP topographic map.
-figure
 cfg = [];
 cfg.colorbar = 'yes';
 cfg.layout = 'biosemi32.lay';
-ft_topoplotER(cfg, avgCtrlMorphs)
-
-% Plot control condition ERP time series.
-figure
-cfg = [];
-cfg.preproc.demean = 'yes';
-cfg.xlim = [-0.5 1.5];
 cfg.channel = 'Pz';
-ft_singleplotER(cfg, avgCtrlMorphs);
+cfg.title = 'ERP for combined morphs 3-4';
+cfg.linewidth = 1;
+cfg.ylim = [-13 13];
+ft_singleplotER(cfg, critERPs{2})
 
-% Critical morph 1 (10%).
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 151;
+cfg = [];
+cfg.colorbar = 'yes';
+cfg.layout = 'biosemi32.lay';
+cfg.channel = 'Pz';
+cfg.title = 'ERP for combined morphs 5-6';
+cfg.linewidth = 1;
+cfg.ylim = [-13 13];
+ft_singleplotER(cfg, critERPs{3})
 
-% Critical morph 2.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 152;
+cfg = [];
+cfg.colorbar = 'yes';
+cfg.layout = 'biosemi32.lay';
+cfg.channel = 'Pz';
+cfg.title = 'ERP for combined morphs 7-8';
+cfg.linewidth = 1;
+cfg.ylim = [-13 13];
+ft_singleplotER(cfg, critERPs{4})
 
-% Critical morph 3.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 153;
+cfg = [];
+cfg.colorbar = 'yes';
+cfg.layout = 'biosemi32.lay';
+cfg.channel = 'Pz';
+cfg.title = 'ERP for combined morphs 9-10';
+cfg.linewidth = 1;
+cfg.ylim = [-13 13];
+ft_singleplotER(cfg, critERPs{5})
 
-% Critical morph 4.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 154;
+% Visualise ERPs as topographic maps.
+cfg = [];
+cfg.colorbar = 'yes';
+cfg.layout = 'biosemi32.lay';
+cfg.xlim = [0.2 0.3];
+cfg.zlim = [-6 6];
+ft_topoplotER(cfg, critERPs{1}, critERPs{2}, critERPs{3}, critERPs{4}, critERPs{5})
 
-% Critical morph 5.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 155;
-
-% Critical morph 6.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 156;
-
-% Critical morph 7.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 157;
-
-% Critical morph 8.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 158;
-
-% Critical morph 9.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 159;
-
-% Critical morph 10 (100%).
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 160;
+figure(8)
+cfg = [];
+cfg.colorbar = 'yes';
+cfg.layout = 'biosemi32.lay';
+cfg.xlim = [0.2 0.3];
+cfg.ylim = [-13 13];
+ft_topoplotER(cfg, ctrlERPs{1}, ctrlERPs{2}, ctrlERPs{3}, ctrlERPs{4}, ctrlERPs{5})
 
 
 
-% Control morph 1 (10%).
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 121;
-
-% Control morph 2.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 122;
-
-% Control morph 3.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 123;
-
-% Control morph 4.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 124;
-
-% Control morph 5.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 125;
-
-% Control morph 6.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 126;
-
-% Control morph 7.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 127;
-
-% Control morph 8.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 128;
-
-% Control morph 9.
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 129;
-
-% Control morph 10 (100%).
-% cfg = [];
-% cfg.trials = data_r_f_segmented.trialinfo == 130;
 
 
 
