@@ -3,21 +3,23 @@
 clear
 close all
 
+% cd rds/projects/2017/schofiaj-01/Oscar_dissertation
+
 % Add path to FieldTrip toolbox.
 restoredefaultpath
-addpath('fieldtrip-20230522');
-addpath('participants');
-addpath('morph eeg data');
+addpath('Code');
+addpath('Data');
+addpath('Code/fieldtrip-20230522');
 
 % Initialise .BDF data file.
-dataFile = 'participants\006meg.bdf';
+dataFile = 'Data/al001.bdf';
 
 % Assign raw data file to configuration.
 cfg.dataset = dataFile;
 
 %% Band-pass filter.
 cfg.bpfilter = 'yes';
-cfg.bpfreq = [0.3 30]; % Use range specified by Alberto Aviles.
+cfg.bpfreq = [0.1 30]; % Use range specified by Alberto Aviles.
 cfg.bpfilttype = 'fir'; % Butterworth does not work with this lower band.
 
 %% Notch (band-stop) filter.
@@ -26,12 +28,13 @@ cfg.bsfreq = [7 8]; % Remove SSVEP of 7.52Hz.
 %% Re-reference.
 cfg.reref = 'yes';
 cfg.refmethod = 'avg'; % Use average.
-cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'}; % Exclude empty channels.
+
+cfg.channel = {'Fp1', 'AF3', 'F7', 'F3', 'FC1', 'FC5', 'T7', 'C3', 'CP1', 'CP5', 'P7', 'P3', 'Pz', 'PO3', 'O1', 'Oz', 'O2', 'Po4', 'P4', 'P8', 'CP6', 'CP2', 'C4', 'T8', 'FC6', 'FC2', 'F4', 'F8', 'AF4', 'Fp2', 'Fz', 'Cz', 'A1', 'A2', 'LEOG', 'REOG', 'UEOG', 'DEOG', 'EXG7', 'EXG8'};
 cfg.refchannel = {'T7', 'T8'}; % Use average of mastoids.
 
 %% Segment.
 cfg.trialdef.eventtype = 'STATUS'; % Events are marked as type 'STATUS'.
-cfg.trialdef.eventvalue = [121:130 151:160]; % Select events of interest.
+cfg.trialdef.eventvalue = 111:170; % Select events of interest.
 cfg.trialdef.prestim = 0.5; % Specify time before event to include.
 cfg.trialdef.poststim = 1.5; % Specify time after event to include.
 
@@ -56,7 +59,7 @@ cfg.dataset = dataFile;
 cfg.trl = trials;
 cfg.continuous = 'no';
 
-cfg.artfctdef.threshold.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
+cfg.artfctdef.threshold.channel = {'Fp1', 'AF3', 'F7', 'F3', 'FC1', 'FC5', 'T7', 'C3', 'CP1', 'CP5', 'P7', 'P3', 'Pz', 'PO3', 'O1', 'Oz', 'O2', 'Po4', 'P4', 'P8', 'CP6', 'CP2', 'C4', 'T8', 'FC6', 'FC2', 'F4', 'F8', 'AF4', 'Fp2', 'Fz', 'Cz', 'A1', 'A2', 'LEOG', 'REOG', 'UEOG', 'DEOG', 'EXG7', 'EXG8'};
 cfg.artfctdef.threshold.bpfilter = 'no';
 cfg.artfctdef.threshold.min = -100;
 cfg.artfctdef.threshold.max = 100;
@@ -64,11 +67,8 @@ cfg.artfctdef.threshold.max = 100;
 [~, artifact] = ft_artifact_threshold(cfg, dataSFR);
 
 %% Visualise pre-processed data.
-figure(1)
-
 cfg = [];
-
-cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
+cfg.channel = {'Fp1', 'AF3', 'F7', 'F3', 'FC1', 'FC5', 'T7', 'C3', 'CP1', 'CP5', 'P7', 'P3', 'Pz', 'PO3', 'O1', 'Oz', 'O2', 'Po4', 'P4', 'P8', 'CP6', 'CP2', 'C4', 'T8', 'FC6', 'FC2', 'F4', 'F8', 'AF4', 'Fp2', 'Fz', 'Cz', 'A1', 'A2', 'LEOG', 'REOG', 'UEOG', 'DEOG', 'EXG7', 'EXG8'};
 cfg.ylim = [-10 10];
 cfg.fontsize = 8;
 
@@ -83,7 +83,7 @@ comp = ft_componentanalysis(cfg, dataSFR);
 %% Inspect components.
 cfg = [];
 cfg.layout = 'biosemi32.lay';
-cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
+cfg.channel = 'all';
 cfg.viewmode = 'component';
 cfg.component = 1:39; % A max of 39 components appear when more is specified.
 cfg.fontsize = 8;
@@ -97,115 +97,82 @@ ft_topoplotIC(cfg, comp)
 %% Reject components.
 cfg = [];
 
-cfg.component = 2;
+cfg.component = [2 8 12 18]; % Components change. Specify with each ICA run!
 
 dataSFRC = ft_rejectcomponent(cfg, comp);
 
-%% Visualise ICA'd data.
+%% Visualise post-ICA data.
 cfg = [];
-
-cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
+cfg.channel = {'Fp1', 'AF3', 'F7', 'F3', 'FC1', 'FC5', 'T7', 'C3', 'CP1', 'CP5', 'P7', 'P3', 'Pz', 'PO3', 'O1', 'Oz', 'O2', 'Po4', 'P4', 'P8', 'CP6', 'CP2', 'C4', 'T8', 'FC6', 'FC2', 'F4', 'F8', 'AF4', 'Fp2', 'Fz', 'Cz', 'A1', 'A2', 'LEOG', 'REOG', 'UEOG', 'DEOG', 'EXG7', 'EXG8'};
 cfg.ylim = [-10 10];
 cfg.fontsize = 8;
 
 ft_databrowser(cfg, dataSFRC)
 
 %% Remove artifact-distorted trials and channels.
-
 cfg = [];
 
 cfg.method = 'channel';
-cfg.channel = {'all', '-GSR1', '-GSR2', '-Erg1', '-Erg2', '-Resp', '-Plet' '-Temp' '-Status'};
+cfg.channel = {'Fp1', 'AF3', 'F7', 'F3', 'FC1', 'FC5', 'T7', 'C3', 'CP1', 'CP5', 'P7', 'P3', 'Pz', 'PO3', 'O1', 'Oz', 'O2', 'Po4', 'P4', 'P8', 'CP6', 'CP2', 'C4', 'T8', 'FC6', 'FC2', 'F4', 'F8', 'AF4', 'Fp2', 'Fz', 'Cz', 'A1', 'A2', 'LEOG', 'REOG', 'UEOG', 'DEOG', 'EXG7', 'EXG8'};
 
 dataSFRCA = ft_rejectvisual(cfg, dataSFRC);
 
+%% Save pre-processed data as new file.
+
+
 %% Generate ERPs.
 
-critMorphPairs = {151:152 153:154 155:156 157:158 159:160};
-ctrlMorphPairs = {121:122 123:124 125:126 127:128 129:130};
+numMorphs = 5;
+numSubjects = 14;
 
-critERPs = cell(1, length(critMorphPairs));
-ctrlERPs = cell(1, length(ctrlMorphPairs));
+% Generate ERPs for each subject, and retrieve morph-level ERPs for grand averaging.
+for iMorph = 1:numMorphs
+    for iSubject = 1:numSubjects
+    % Load and read preprocessed data files for each subject.
+    file = sprintf('sub%d_pp.bdf', iSubject);
+    subjectData = ft_preprocessing(cfg, file);
 
-for i = 1:length(critMorphPairs)
-    critIdxs = find(ismember(dataSFRCA.trialinfo, critMorphPairs{i}));
-    ctrlIdxs = find(ismember(dataSFRCA.trialinfo, ctrlMorphPairs{i}));
+    % Create parent struct to contain subject ERPs.
+    % Create new sub-struct for each subject.
+    % For each subject, create sub-struct for each block.
+    % Call generateERPs to store morph pair ERPs in cell arrays for critical/control conditions.
+    subjectERPs.(sprintf('sub%d', iSubject)).trump = generateERPs(subjectData, subjectData.trialinfo, 'trump');
+    subjectERPs.(sprintf('sub%d', iSubject)).markle = generateERPs(subjectData, subjectData.trialinfo, 'markle');
+    subjectERPs.(sprintf('sub%d', iSubject)).incidental = generateERPs(subjectData, subjectData.trialinfo, 'incidental');
+    
+    % Create new parent struct to contain morph ERPs.
+    % Create new sub-struct for each block.
+    % Create cell array for current morph type.
+    % Retrieve all morphs of that type from across current participant's data.
+    
+    % Critical morphs.
+    morphERPs.trump.critical.(sprintf('morph%d', iMorph)){iSubject} = ...
+        {subjectERPs.(sprintf('sub%d', iSubject)).trump.critical{iMorph}};
 
-    cfg = [];
-    cfg.trials = critIdxs;
-    critMorphs = ft_selectdata(cfg, dataSFRCA);
+    morphERPs.markle.critical.(sprintf('morph%d', iMorph)){iSubject} = ...
+        {subjectERPs.(sprintf('sub%d', iSubject)).markle.critical{iMorph}};
 
-    cfg = [];
-    cfg.trials = ctrlIdxs;
-    ctrlMorphs = ft_selectdata(cfg, dataSFRCA);
+    morphERPs.incidental.critical.(sprintf('morph%d', iMorph)){iSubject} = ...
+        {subjectERPs.(sprintf('sub%d', iSubject)).incidental.critical{iMorph}};
 
-    cfg = [];
-    critERPs{i} = ft_timelockanalysis(cfg, critMorphs);
-    ctrlERPs{i} = ft_timelockanalysis(cfg, ctrlMorphs);
+    % Control morphs.
+    morphERPs.trump.control.(sprintf('morph%d', iMorph)){iSubject} = ...
+        {subjectERPs.(sprintf('sub%d', iSubject)).trump.control{iMorph}};
 
+    morphERPs.markle.control.(sprintf('morph%d', iMorph)){iSubject} = ...
+        {subjectERPs.(sprintf('sub%d', iSubject)).markle.control{iMorph}};
+
+    morphERPs.incidental.control.(sprintf('morph%d', iMorph)){iSubject} = ...
+        {subjectERPs.(sprintf('sub%d', iSubject)).incidental.control{iMorph}};
+    end
 end
 
-% Visualise ERPs as time series.
-cfg = [];
-cfg.colorbar = 'yes';
-cfg.layout = 'biosemi32.lay';
-cfg.channel = 'Pz';
-cfg.title = 'ERP for combined morphs 1-2';
-cfg.linewidth = 1;
-cfg.ylim = [-13 13];
-ft_singleplotER(cfg, critERPs{1}, critERPs{2})
-
-cfg = [];
-cfg.colorbar = 'yes';
-cfg.layout = 'biosemi32.lay';
-cfg.channel = 'Pz';
-cfg.title = 'ERP for combined morphs 3-4';
-cfg.linewidth = 1;
-cfg.ylim = [-13 13];
-ft_singleplotER(cfg, critERPs{2})
-
-cfg = [];
-cfg.colorbar = 'yes';
-cfg.layout = 'biosemi32.lay';
-cfg.channel = 'Pz';
-cfg.title = 'ERP for combined morphs 5-6';
-cfg.linewidth = 1;
-cfg.ylim = [-13 13];
-ft_singleplotER(cfg, critERPs{3})
-
-cfg = [];
-cfg.colorbar = 'yes';
-cfg.layout = 'biosemi32.lay';
-cfg.channel = 'Pz';
-cfg.title = 'ERP for combined morphs 7-8';
-cfg.linewidth = 1;
-cfg.ylim = [-13 13];
-ft_singleplotER(cfg, critERPs{4})
-
-cfg = [];
-cfg.colorbar = 'yes';
-cfg.layout = 'biosemi32.lay';
-cfg.channel = 'Pz';
-cfg.title = 'ERP for combined morphs 9-10';
-cfg.linewidth = 1;
-cfg.ylim = [-13 13];
-ft_singleplotER(cfg, critERPs{5})
-
-% Visualise ERPs as topographic maps.
-cfg = [];
-cfg.colorbar = 'yes';
-cfg.layout = 'biosemi32.lay';
-cfg.xlim = [0.2 0.3];
-cfg.zlim = [-6 6];
-ft_topoplotER(cfg, critERPs{1}, critERPs{2}, critERPs{3}, critERPs{4}, critERPs{5})
-
-figure(8)
-cfg = [];
-cfg.colorbar = 'yes';
-cfg.layout = 'biosemi32.lay';
-cfg.xlim = [0.2 0.3];
-cfg.ylim = [-13 13];
-ft_topoplotER(cfg, ctrlERPs{1}, ctrlERPs{2}, ctrlERPs{3}, ctrlERPs{4}, ctrlERPs{5})
+% Generate grand average ERPs from 
+cfg.method = 'across';
+cfg.parameter = 'avg';
+cfg.channel = {'Fp1', 'AF3', 'F7', 'F3', 'FC1', 'FC5', 'T7', 'C3', 'CP1', 'CP5', 'P7', 'P3', 'Pz', 'PO3', 'O1', 'Oz', 'O2', 'Po4', 'P4', 'P8', 'CP6', 'CP2', 'C4', 'T8', 'FC6', 'FC2', 'F4', 'F8', 'AF4', 'Fp2', 'Fz', 'Cz', 'A1', 'A2', 'LEOG', 'REOG', 'UEOG', 'DEOG', 'EXG7', 'EXG8'};
+cfg.latency = 'all'; % Time window of interest.
+cfg.keepindividual = 'no'; % Specify whether to keep individual data in cfg.
 
 
 
