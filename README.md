@@ -16,11 +16,17 @@ This project is an ongoing work-in-progress. The files and folders in this repos
 The code/ folder contains the following:
 
 - Preprocessing/: a folder containing all scripts used in the data preproccessing of this project.
+- ERP/: a folder containing all scripts used to generate Event-Related Potentials from the preprocessed data.
 - Analysis/: a folder containing all scripts used in the data analysis of this project.
 
 In the Preprocessing/ folder, the following scripts are available:
 
 - preprocessing.m: a script that performs all of the preprocessing, segmentation and artifact rejection on the raw EEG data (work in progress).
+
+In the ERP/ folder, the following scripts are available:
+
+- erpGeneration.m: a script that generates the subject-level ERPs to each condition, and generates the grand average ERPs to each condition across all subjects.
+- generateERP.m: a script defining a function that generates the subject-level ERPs, used in the erpGeneration.m script.
 
 The Analysis/ folder is not yet populated, as the scripts are currently being written.
 
