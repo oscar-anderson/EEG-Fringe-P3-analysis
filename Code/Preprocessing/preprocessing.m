@@ -134,7 +134,7 @@ for iMorph = 1:numMorphs
 
     % Create parent struct to contain subject ERPs.
     % Create new sub-struct for each subject.
-    % For each subject, create sub-struct for each block.
+    % For each subject, create cell array for each block.
     % Call generateERPs to store morph pair ERPs in cell arrays for critical/control conditions.
     subjectERPs.(sprintf('sub%d', iSubject)).trump = generateERPs(subjectData, subjectData.trialinfo, 'trump');
     subjectERPs.(sprintf('sub%d', iSubject)).markle = generateERPs(subjectData, subjectData.trialinfo, 'markle');
@@ -144,6 +144,8 @@ for iMorph = 1:numMorphs
     % Create new sub-struct for each block.
     % Create cell array for current morph type.
     % Retrieve all morphs of that type from across current participant's data.
+
+    % Index into each subject's ERPs, pull out morph type ERP of current iteration.
     
     % Critical morphs.
     morphERPs.trump.critical.(sprintf('morph%d', iMorph)){iSubject} = ...
@@ -167,13 +169,24 @@ for iMorph = 1:numMorphs
     end
 end
 
-% Generate grand average ERPs from 
+% Here, we end up with six morph structs, which each contain all of the
+% morphs of a certain type, from every condition, block and subject.
+
+% Generate grand averages across morph types of all subjects.
 cfg.method = 'across';
 cfg.parameter = 'avg';
 cfg.channel = {'Fp1', 'AF3', 'F7', 'F3', 'FC1', 'FC5', 'T7', 'C3', 'CP1', 'CP5', 'P7', 'P3', 'Pz', 'PO3', 'O1', 'Oz', 'O2', 'Po4', 'P4', 'P8', 'CP6', 'CP2', 'C4', 'T8', 'FC6', 'FC2', 'F4', 'F8', 'AF4', 'Fp2', 'Fz', 'Cz', 'A1', 'A2', 'LEOG', 'REOG', 'UEOG', 'DEOG', 'EXG7', 'EXG8'};
 cfg.latency = 'all'; % Time window of interest.
 cfg.keepindividual = 'no'; % Specify whether to keep individual data in cfg.
 
+for iGrand = 1:5
+    grandERPs.(sprintf('grandCritTrump%d', iGrand)) = ft_timelockgrandaverage(cfg, morphERPs.trump.critical.(sprintf('morph%d', iGrand)));
+    grandERPs.(sprintf('grandCtrlTrump%d', iGrand)) = ft_timelockgrandaverage(cfg, morphERPs.trump.control.(sprintf('morph%d', iGrand)));
+    grandERPs.(sprintf('grandCritMarkle%d', iGrand)) = ft_timelockgrandaverage(cfg, morphERPs.markle.critical.(sprintf('morph%d', iGrand)));
+    grandERPs.(sprintf('grandCtrlMarkle%d', iGrand)) = ft_timelockgrandaverage(cfg, morphERPs.markle.control.(sprintf('morph%d', iGrand)));
+    grandERPs.(sprintf('grandCritIncidental%d', iGrand)) = ft_timelockgrandaverage(cfg, morphERPs.incidental.critical.(sprintf('morph%d', iGrand)));
+    grandERPs.(sprintf('grandCtrlIncidental%d', iGrand)) = ft_timelockgrandaverage(cfg, morphERPs.incidental.control.(sprintf('morph%d', iGrand)));
+end
 
 
 
