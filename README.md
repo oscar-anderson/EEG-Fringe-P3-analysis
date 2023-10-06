@@ -11,12 +11,12 @@ This project is an ongoing work-in-progress. Repository folders, subfolders and 
 
 ## Contents
 ### README.md
-This file.
+-This file.
 ### Proposal/
-This contains the written research proposal for the project (in .docx and .md format). This proposal outlines the background, aims, methodology and planned analysis of the study.
+-This folder contains the written research proposal for the project (in .docx and .md format). This proposal outlines the background, aims, methodology and planned analysis of the study.
 
 ### Code/
-This contains the required code for this project, contained in the following subfolders:
+-This folder contains the required code for this project, contained in the following subfolders:
 - #### Preprocessing/
   This contains all scripts and functions used in the data preproccessing of this project:
   - ##### preprocess.m
@@ -35,7 +35,7 @@ This contains the required code for this project, contained in the following sub
     A script that runs the cluster-based paired-samples permutation test to compare the subject-level ERPs of the probe and irrelevant conditions of each pair level, in each block. The script first defines the neighbours for each channel in the data (to be later used in clusters), then runs the permutation test and plots the significant clusters on topographic maps over time.
 
 ### Poster/
-This contains a PDF poster that summarises the research project, used for my MSc dissertation conference presentation.
+-This contains a PDF poster that summarises the research project, used for my MSc dissertation conference presentation.
 
 ## Acknowledgements
 This project is being conducted in collaboration with Professor Howard Bowman at the University of Birmingham.
