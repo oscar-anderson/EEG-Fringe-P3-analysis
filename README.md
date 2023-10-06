@@ -1,5 +1,8 @@
 # EEG-Fringe-P3-analysis
-This repository contains code for my MSc dissertation project, which investigates how different types and strengths of salience affect the P300 response - a reliable neural signature for the detection of salient stimuli - measured via EEG (using the Fringe-P3 method), during the Rapid Serial Visual Presentation (RSVP) of different face stimuli.
+This repository contains code for my MSc dissertation and an ongoing research project that I am working on as lead author, alongside Professor Howard Bowman and Dr Alberto Aviles at the University of Birmingham, with the intention to seek its publication upon completion.
+
+## Background
+This project constitutes an analysis of electroencephalography (EEG) data collected from an experiment conducted by Dr Aviles, in which subjects viewed streams of faces presented via Rapid Serial Visual Presentation (RSVP), within a paradigm known as the Fringe-P3 technique. In analysing the electrophysiological responses to faces of different forms and strengths of personal significance to the subjects (referred to as 'salience'), we aim to detect a neural signal known as the P300 (P3) - an electrophysiological response recognised as a reliable neural signature of perceived salience - and examine how differences in the form or strength of perceived salience can affect this pattern of neural responding. In doing so, this research aims to add to our current scientific understanding of the P3 component and determine the utility of the Fringe-P3 technique in discerning what individuals perceive as salient, without them ever explicitly communicating this information.
 
 Please see my research proposal (located in the Proposal/ folder of this repository) for a full description of the research aims and methods.
 
@@ -14,26 +17,28 @@ This project is an ongoing work-in-progress. The files and folders in this repos
 
 ## Code/
 The code/ folder contains the following:
+- Preprocessing/: a folder containing all scripts and functions used in the data preproccessing of this project.
+- ERP/: a folder containing all scripts and functions used to generate the Event-Related Potentials of this project.
+- Analysis/: a folder containing all scripts and functions used in the data analysis of this project.
 
-- Preprocessing/: a folder containing all scripts used in the data preproccessing of this project.
-- ERP/: a folder containing all scripts used to generate Event-Related Potentials from the preprocessed data.
-- Analysis/: a folder containing all scripts used in the data analysis of this project.
+In the Preprocessing/ folder, the following code is available:
 
-In the Preprocessing/ folder, the following scripts are available:
+- preprocess.m: a function that applies all of our initial preprocessing steps to input raw data - including segmentation, baseline-correction, band-pass filtering, band-stop filtering, re-referencing and artifact exclusion thresholding.
+- preprocessing.m: a script that loads the raw data, calls the custom preprocess() function to apply the pipeline, then facilitates Independent Component Analysis and channel/trial rejection for further data cleaning.
 
-- preprocessing.m: a script that performs all of the preprocessing, segmentation and artifact rejection on the raw EEG data (work in progress).
+In the ERP/ folder, the following code is available:
 
-In the ERP/ folder, the following scripts are available:
+- generateSubjectERPs.m: a function that generates the subject-level ERPs by averaging across pairs of trials that involve adjacent probe/irrelevant morph presentations.
+- erpGeneration.m: a script that calls the generateSubjectERPs() function to generate the subject-level ERPs, then tidies/prepares the array containing these averaged signals for the subsequent statistical analysis by removing empty cells and any ERPs that do not have a probe/irrelevant equivalent. The script then includes code to optionally adjust the latency of the subject-level ERPs, code to average across the subject-level ERPs to generate the group-level ERPs, as well as code to visualise the resulting group-level signals.
 
-- erpGeneration.m: a script that generates the subject-level ERPs to each condition, and generates the grand average ERPs to each condition across all subjects.
-- generateERP.m: a script defining a function that generates the subject-level ERPs, used in the erpGeneration.m script.
+In the Analysis/ folder, the following code is available:
 
-The Analysis/ folder is not yet populated, as the scripts are currently being written.
+- groupLevelAnalysis.m: a script that runs the cluster-based paired-samples permutation test to compare the subject-level ERPs of the probe and irrelevant conditions of each pair level, in each block. The script first defines the neighbours for each channel in the data (to be later used in clusters), then runs the permutation test and plots the significant clusters on topographic maps over time.
 
 ## Acknowledgements
-This project is being conducted under the encouraging and insightful supervision of Professor Howard Bowman, at the University of Birmingham.
+This project is being conducted in collaboration with Professor Howard Bowman at the University of Birmingham.
 
-This project uses data collected by Dr Alberto Aviles, under the supervision of Professor Howard Bowman.
+This project uses data collected by Dr Alberto Aviles, as a part of his PhD under the supervision of Professor Howard Bowman.
 
 Invaluable guidance on this project has been provided by PhD student Cihan Dogan, from the University of Kent.
 
