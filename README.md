@@ -7,7 +7,7 @@ This project constitutes an analysis of electroencephalography (EEG) data collec
 Please see my research proposal (located in the Proposal/ folder of this repository) for a full description of the research aims and methods. The manuscript for my MSc dissertation will be uploaded on 20th October 2023. The manuscript for the full project is currently being prepared with the intention of seeking its publication by 25th December 2023.
 
 ## Disclaimer
-This project is an ongoing work-in-progress. The files and folders in this repository may be incomplete, contain errors and/or not up to date.
+This project is an ongoing work-in-progress. Repository folders, subfolders and files are subject to change.
 
 ## Contents
 ### README.md
